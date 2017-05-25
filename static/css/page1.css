@@ -184,6 +184,18 @@ div.god-btn {
   position: absolute;
   bottom: 3%;
   right: 3%;
+  z-index: 999;
+  background-color: tranparent;
+}
+button.ok-god {
+  background-color: Transparent;
+  background-repeat:no-repeat;
+  border: none;
+  cursor:pointer;
+  overflow: hidden;
+  outline:none;
+  width: 50px;
+  height: 50px;
 }
 div.name {
   font-size: 2em;

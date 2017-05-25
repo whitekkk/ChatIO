@@ -19,22 +19,15 @@
       <div class="name">
         {{nameMe}} : Lv {{myLv}}
       </div>
-      <div class="test">
-        <div v-for="(i, index) in rankSort">
-          {{index + 1}}
-          {{i.name}}
-          {{i.lv}}
-        </div>
-      </div>
       <div class="count-down">
         {{waitingTime}}
       </div>
       <i class="fa fa-microphone" aria-hidden="true"></i>
-      <button class="rec-btn" @click="speechTest">🎤</button>
+      <button id="myBtn" class="rec-btn" @click="speechTest">🎤</button>
       <div class="god-btn">
-        God:
-        <input type="text"  v-model="testSpeak">
-        <button @click="testSend()">OK</button>
+        <!-- Test:
+        <input type="text"  v-model="testSpeak"> -->
+        <button class="ok-god" @click="testSend()"></button>
       </div>
       <button type="button" class="home" @click="changepage(1)">🏡</button>
       <div class="box-text">
@@ -55,11 +48,24 @@
     <div v-else-if="page === 3" class="page row">
       <div class="inp-key">
         <div v-if="!checkKey" style="float:left;">
-          <input class="form-control" type="text" v-model="key"placeholder="Key-20 charecter" autofocus maxlength="20"/>
+          <input class="form-control" type="text" v-model="key" placeholder="Key-20 charecter" autofocus maxlength="20"/>
           <button @click="makeID" class="btn-gen" >Genkey:&#128273;</button>
         </div>
         <div v-else>
-          <p style="font-size: 2em;">{{key}}</p>
+          <!-- <p style="font-size: 2em;">{{key}}</p> -->
+          <!-- +-+-+-+-+-+-+-+-+ -->
+
+          <div class="input-group">
+          <input type="text" class="form-control" v-model="key">
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-default"
+              v-clipboard:copy="key"
+              v-clipboard:success="onCopy"
+              v-clipboard:error="onError">
+              <img  src="../static/images/clippy.svg" width="17.5" alt="Copy to clipboard">
+            </button>
+          </span>
+        </div>
         </div>
         <div v-if="connectButton" >
           <button class="btn-connect" @click="joinRoom()">Connect</button>
@@ -135,9 +141,9 @@
           </div>
         </div>
         <div class="god-btn">
-          God:
-          <input type="text"  v-model="testSpeak">
-          <button @click="testSend()">OK</button>
+          <!-- Test:
+          <input type="text"  v-model="testSpeak"> -->
+          <button class="ok-god" @click="testSend()"></button>
         </div>
       <button type="button" class="home" @click="changepage(1)">🏡</button>
     </div>
@@ -318,7 +324,7 @@ export default {
         this.connectButton = true
       } else if (this.page === 2) {
         this.$socket.emit('singleWords')
-        vm.waitingTime = 20
+        vm.waitingTime = 30
         vm.waiting = setInterval(() => {
           vm.waitingTime--
           if (vm.waitingTime === 0) {
@@ -351,7 +357,16 @@ export default {
             for (var j = 0; j < vm.rankSort.length; j++) {
               test += (j + 1) + ' ' + vm.rankSort[j].name + ' ' + vm.rankSort[j].lv + '\n'
             }
-            console.log(test)
+            swal({
+              title: 'Top 5 Player',
+              text: test
+            },
+            function (inputValue) {
+              if (inputValue === false) {
+                return false
+              }
+              vm.page = 1
+            })
             vm.leaving()
           }
         }, 1000)
@@ -429,13 +444,24 @@ export default {
         var recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)()
         recognition.lang = 'en-US'
         recognition.interimResults = false
-        // recognition.onspeechstart = function () {
-        //   console.log('Speech  detected')
-        // }
-        // recognition.onspeechend = function () {
-        //   console.log('Speech stopped')
-        // }
+        recognition.onspeechstart = function () {
+          console.log('Speech  detected')
+          // document.getElementById('myBtn').style.background = 'url(../static/images/circles.gif)'
+        }
+        recognition.onspeechend = function () {
+          console.log('Speech stopped')
+        }
         // recognition.continuous = true
+        recognition.onaudiostart = function () {
+          document.getElementById('myBtn').disabled = true
+          document.getElementById('myBtn').style.backgroundColor = 'red'
+          console.log('onaudiostrat')
+        }
+        recognition.onaudioend = function () {
+          document.getElementById('myBtn').disabled = false
+          document.getElementById('myBtn').style.backgroundColor = 'gray'
+          console.log('onaudiostop')
+        }
         recognition.maxAlternatives = 5
         recognition.start()
         recognition.onresult = function (event) {
@@ -528,6 +554,12 @@ export default {
           }
         }
       }
+    },
+    onCopy: function (e) {
+      // alert('You just copied: ' + e.text)
+    },
+    onError: function (e) {
+      // alert('Failed to copy texts')
     }
   },
   mounted () {
