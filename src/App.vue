@@ -25,8 +25,6 @@
       <i class="fa fa-microphone" aria-hidden="true"></i>
       <button id="myBtn" class="rec-btn" @click="speechTest">🎤</button>
       <div class="god-btn">
-        <!-- Test:
-        <input type="text"  v-model="testSpeak"> -->
         <button class="ok-god" @click="testSend()"></button>
       </div>
       <button type="button" class="home" @click="changepage(1)">🏡</button>
@@ -52,20 +50,24 @@
           <button @click="makeID" class="btn-gen" >Genkey:&#128273;</button>
         </div>
         <div v-else>
-          <!-- <p style="font-size: 2em;">{{key}}</p> -->
-          <!-- +-+-+-+-+-+-+-+-+ -->
-
-          <div class="input-group">
-          <input type="text" class="form-control" v-model="key">
-          <span class="input-group-btn">
-            <button type="button" class="btn btn-default"
-              v-clipboard:copy="key"
-              v-clipboard:success="onCopy"
-              v-clipboard:error="onError">
-              <img  src="../static/images/clippy.svg" width="17.5" alt="Copy to clipboard">
-            </button>
-          </span>
-        </div>
+          <div v-if="coppyButton" >
+            <div class="input-group">
+            <input type="text" class="form-control" v-model="key">
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default"
+                v-clipboard:copy="key"
+                v-clipboard:success="onCopy"
+                v-clipboard:error="onError">
+                <img  src="../static/images/clippy.svg" width="17.5" alt="Copy to clipboard">
+              </button>
+            </span>
+            </div>
+          </div>
+          <div v-if="!coppyButton && checkKey">
+            <div class="panel panel-default">
+              <div class="panel-heading">{{key}}</div>
+            </div>
+          </div>
         </div>
         <div v-if="connectButton" >
           <button class="btn-connect" @click="joinRoom()">Connect</button>
@@ -73,14 +75,12 @@
         <div v-else>
           <button class="btn-cancle" @click="changepage(3)">Cancle ✖</button>
         </div>
-
         <div>
           <br><br>
           <div v-if="nameRival !== '' &&  key !== ''">
             <div style="float: left; font-size: 2em;">
               {{nameMe}}
             </div>
-            <!-- <button v-if="!readyMe" type="button" @click="startGame(true)">Ready ✔</button> -->
             <button v-if="!readyMe" @click="startGame(true)" class="button-ready" style="vertical-align:middle">
               <span> Ready </span>
             </button>
@@ -112,7 +112,7 @@
       <div class="name-rival">
         {{nameRival}} : Lv {{levelRival}}
       </div>
-        <button class="rec-btn" @click="speechTest">🎤</button>
+        <button id="myBtn" class="rec-btn" @click="speechTest">🎤</button>
         <br>
         <div v-if="player !== 0 && player > 1" >
           <div class="count-down">
@@ -125,7 +125,6 @@
           <div class="box-text">
             {{showText.message}}
           </div>
-          <!-- {{showText2}} -->
         </div>
         <div class="run-tab">
           <div style="float: left;" v-for="i in stepMe">
@@ -141,8 +140,6 @@
           </div>
         </div>
         <div class="god-btn">
-          <!-- Test:
-          <input type="text"  v-model="testSpeak"> -->
           <button class="ok-god" @click="testSend()"></button>
         </div>
       <button type="button" class="home" @click="changepage(1)">🏡</button>
@@ -198,7 +195,8 @@ export default {
       ranking: [],
       myLv: 1,
       lvSort: [],
-      connectButton: true
+      connectButton: true,
+      coppyButton: false
     }
   },
   sockets: {
@@ -391,7 +389,6 @@ export default {
           this.match = this.nameMe.toString() + ' ' + (this.level + 1) + ' - ' + (this.levelRival + 1) + ' ' + this.nameRival
           // firebase.database().ref('events/').remove()
         }
-        // this.player = 0
         this.readyMe = false
         this.readyRival = false
         this.checkKey = false
@@ -402,6 +399,7 @@ export default {
         this.stepMe = [0, -1, -1, -1, -1, -1, -1, -1, -1, -1]
         this.stepRival = [0, -1, -1, -1, -1, -1, -1, -1, -1, -1]
         this.connectButton = true
+        this.coppyButton = false
       } else if (this.page === 4) {
       }
     },
@@ -423,6 +421,7 @@ export default {
     makeID () {
       this.$socket.emit('genRoom')
       this.connectButton = false
+      this.coppyButton = true
     },
     joinRoom () {
       var vm = this
@@ -506,7 +505,6 @@ export default {
       }
     },
     checkWord (val) {
-      // console.log(val)
       if (val.toLowerCase() === this.word) {
         this.speechTest()
         this.waitingTime += 3
@@ -554,12 +552,6 @@ export default {
           }
         }
       }
-    },
-    onCopy: function (e) {
-      // alert('You just copied: ' + e.text)
-    },
-    onError: function (e) {
-      // alert('Failed to copy texts')
     }
   },
   mounted () {
@@ -600,7 +592,6 @@ export default {
     }
   }
 }
-
 </script>
 
 <style>
