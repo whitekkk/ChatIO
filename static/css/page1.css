@@ -211,10 +211,13 @@ img {
   margin: 0 auto;
 }
 img.firstPage {
-  /*max-height: 400px;*/
   max-width: 100%;
   height: auto;
-  width: auto\9; /* ie8 */
+  width: auto\9;
+  /*position: fixed;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);*/
 }
 img.menu {
   max-width: 50%;
