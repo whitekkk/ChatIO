@@ -283,7 +283,7 @@ export default {
       if (this.page === 0) {
         swal({
           title: 'Welcome',
-          text: 'Insert your name.',
+          text: 'Input your name.',
           type: 'input',
           inputPlaceholder: '0-8 Charecter',
           html: true
