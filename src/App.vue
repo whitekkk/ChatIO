@@ -9,25 +9,52 @@
       {{capitalizeFirstLetter(room)}}
       <button v-show="roomCheck" type="button" class="btn btn-danger" @click="changeRoom(-1)">X</button>
     </div>
-    <div v-show="roomCheck" class="col-md-6 col-md-offset-3">
-      <div class="thumbnail">
-        <div v-for="item in message">
-          {{ item.who }} {{ item.message }} {{ item.time }}
+    <div v-show="roomCheck" class="col-md-7 col-md-offset-3" style="margin-top:20px;">
+      <div class="col-md-8">
+        <div class="thumbnail" style="height:50rem;">
+          <table class="table table">
+            <thead>
+                <tr>
+                  <th><center>Name</center></th>
+                  <th><center>Message</center></th>
+                  <th><center>Time</center></th>
+                </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in message">
+                <td>{{ item.who }}</td>
+                <td>{{ item.message }}</td>
+                <td>{{ item.time }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="input-group">
+          <input v-model="myMessage" class="form-control">
+            <span class="input-group-btn">
+            <button @click="sentMessage" type="button" class="btn btn-default">sent</button>
+          </span>
         </div>
       </div>
-      <div class="input-group">
-        <input v-model="myMessage" class="form-control">
-          <span class="input-group-btn">
-          <button @click="sentMessage" type="button" class="btn btn-default">sent</button>
-        </span>
+      <div class="col-md-3">
+        <div class="thumbnail" style="height:24rem;">
+          <h4>All Users</h4><hr style="margin-top:-5px;">
+          <table class="table">
+            <tr v-for="item in users">
+              <td>{{ item.user }}</td>
+              <td>{{ capitalizeFirstLetter(item.room) }}</td>
+            </tr>
+          </table>
       </div>
-    </div>
-
-    <div v-for="item in users">
-      {{ item.user }} {{ capitalizeFirstLetter(item.room) }}
-    </div>
-    <div v-for="item in joinUsers">
-      {{ item.user }}
+      </div>
+      <div class="col-md-3">
+        <div class="thumbnail" style="height:24rem;">
+          <h4>User in Room</h4><hr style="margin-top:-5px;">
+        <div v-for="item in joinUsers">
+          {{ item.user }}
+        </div>
+      </div>
+      </div>
     </div>
   </div>
 </template>
