@@ -4,7 +4,12 @@ var bodyParser = require('body-parser')
 var server = require('http').Server(app)
 var io = require('socket.io')(server)
 var word = require('./word')
-var allRoom = {}
+var allRoom = {
+  room1: [0],
+  room2: [0],
+  room3: [0]
+}
+var allUser = []
 app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*')
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
@@ -14,129 +19,90 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.use(express.static('dist'))
 io.on('connection', function (socket) {
-  socket.on('setName', function (data) {
-    console.log(data)
-    socket.broadcast.to(data.room).emit('getName', {
-      name: data.name
-    })
-  })
-  socket.on('getReady', function (data) {
-    console.log(data)
-    socket.broadcast.to(data.room).emit('getReady', data.ready)
-    if (data.ready) {
-      allRoom[data.room][allRoom[data.room].length - 2]++
-    } else {
-      allRoom[data.room][allRoom[data.room].length - 2]--
+  function sentRoom (room1, room2, room3) {
+    // ฟังคฺ์ชันส่งค่าการนับจำนวนในแต่ละห้อง
+    console.log(room1, room2, room3)
+    // if พวกนี้กัน bug
+    if (room1 === NaN) {
+      room1 = 0
     }
-    if (allRoom[data.room][allRoom[data.room].length - 2] === 2) {
-      socket.emit('statusPlayer', true)
-      socket.broadcast.to(data.room).emit('statusPlayer', true)
+    if (room2 === NaN) {
+      room2 = 0
     }
-  })
-  socket.on('get', function (data) {
-    console.log(data)
-    var inRoom = {
-      key: data.room,
-      word: allRoom[data.room][data.stat],
-      player: allRoom[data.room][allRoom[data.room].length - 1]
+    if (room2 === NaN) {
+      room2 = 0
     }
-    socket.emit('players', inRoom)
-    console.log('sending room post', data.room)
-    socket.emit('yourLevel', {
-      message: data.message,
-      who: 'me',
-      level: data.stat
+    io.sockets.emit('roomCount', {
+      room1: room1,
+      room2: room2,
+      room3: room3
     })
-    socket.broadcast.to(data.room).emit('rivalLevel', {
-      message: data.message,
-      who: 'rival',
-      level: data.stat
-    })
-  })
+  }
+  function getOut (id) {
+    // เตะคอนออกจากห้องจาก ID
+    for (i in allRoom) {
+      if (allRoom[i].findIndex(who => who.id === id) !== -1) {
+        allRoom[i].splice(allRoom[i].findIndex(who => who.id === id), 1)
+        allRoom[i][allRoom[i].length - 1]--
+      }
+    }
+  }
+  function changeUserRoom (name, room) {
+    // จัดการ User ทั้งหมด
+    if (allUser[allUser.findIndex(who => who.user === name)].room) {
+      allUser[allUser.findIndex(who => who.user === name)].room = room
+    }
+  }
+  socket.emit('getUsers', allUser)
+  sentRoom (allRoom.room1[allRoom.room1.length - 1], allRoom.room2[allRoom.room2.length - 1], allRoom.room3[allRoom.room3.length - 1])
   socket.on('subscribe', function (data) {
-    console.log(data)
-    console.log(allRoom[data.room])
-    if (allRoom[data.room]) {
-      console.log('joining room', data.room)
-      // console.log(allRoom[data.room][allRoom[data.room].length - 1])
-      var check = allRoom[data.room][allRoom[data.room].length - 1]
-      if (check === 0) {
-        allRoom[data.room][allRoom[data.room].length - 1] = 1
-        var inRoom = {
-          key: data.room,
-          word: allRoom[data.room][0],
-          player: 1
-        }
-        socket.emit('players', inRoom)
-        socket.broadcast.to(data.room).emit('players', inRoom)
-      } else if (check === 1) {
-        allRoom[data.room][allRoom[data.room].length - 1] = 2
-        inRoom = {
-          key: data.room,
-          word: allRoom[data.room][0],
-          player: 2
-        }
-        socket.emit('players', inRoom)
-        socket.broadcast.to(data.room).emit('players', inRoom)
-      } else {
-        socket.emit('players', -1)
-      }
+    getOut (this.id)
+    if (allRoom[data.room][allRoom[data.room].length - 1] < 8){
+      console.log(data.name, 'joining ', data.room)
       socket.join(data.room)
+      allRoom[data.room].splice(allRoom[data.room].length - 1,1)
+      allRoom[data.room].push({user: data.name, id: this.id})
+      allRoom[data.room].push(allRoom[data.room].length)
+      changeUserRoom (data.name, data.room)
+      io.sockets.emit('getUsers', allUser)
+      sentRoom (allRoom.room1[allRoom.room1.length - 1], allRoom.room2[allRoom.room2.length - 1], allRoom.room3[allRoom.room3.length - 1])
+      io.sockets.to(data.room).emit('usersInRoom', allRoom[data.room])
+      socket.emit('subscribed', data.room)
     } else {
-      socket.emit('players', -2)
+      socket.emit('usersJoin', -1)
     }
   })
-  socket.on('genRoom', function (data) {
-    // console.log("getid");
-    var genWord = []
-    for (var i = 0; i < word.length; i++) {
-      var posi = Math.floor(Math.random() * word[i].length)
-      genWord[i] = (word[i][posi])
-    }
-    // genWord[genWord.length] = Date.now()
-    genWord[genWord.length] = 0
-    genWord[genWord.length] = 0
-    var id = makeId()
-    // allRoom.push({[id]: genWord})
-    allRoom[id] = genWord
-    // console.log(allRoom);
-    var waiting = {
-      id,
-      player: genWord[genWord.length - 1]
-    }
-    socket.emit('genRoom', waiting)
+  socket.on('unsub', function (data) {
+    getOut (this.id)
+    changeUserRoom (data.name, 'Lobby')
+    io.sockets.emit('getUsers', allUser)
+    io.sockets.to(data.room).emit('usersInRoom', allRoom[data.room])
+    sentRoom (allRoom.room1[allRoom.room1.length - 1], allRoom.room2[allRoom.room2.length - 1], allRoom.room3[allRoom.room3.length - 1])
+    socket.leave(data.room)
   })
-  socket.on('remove', function (data) {
-    // console.log("REMOVE " + data.room);
-    // console.log(allRoom[data.room])
-    // console.log(allRoom[data.room][allRoom[data.room].length - 1])
-    if (allRoom[data.room]) {
-      if (allRoom[data.room][allRoom[data.room].length - 1] === 2) {
-        allRoom[data.room][allRoom[data.room].length - 1] = 3
-        socket.broadcast.to(data.room).emit('players', data.level)
-      } else {
-        delete allRoom[data.room]
-      }
-    }
-    console.log(allRoom)
+  socket.on('onChat', function (data) {
+    socket.broadcast.to(data.room).emit('sendMessage', {
+      message: data.message,
+      who: data.name,
+    })
   })
-  socket.on('singleWords', function () {
-    var genWord = []
-    for (var i = 0; i < word.length; i++) {
-      var posi = Math.floor(Math.random() * word[i].length)
-      genWord[i] = (word[i][posi])
+  socket.on('nameCheck', function (data) {
+    let check = true
+    if (allUser.findIndex(someuser => someuser.user === data) !== -1) {
+      check = !check
+    } else {
+      allUser.push({user: data, id: this.id, room: 'Lobby'})
+      io.sockets.emit('getUsers', allUser)
     }
-    socket.emit('singleWords', genWord)
+    socket.emit('nameInvalid', check)
+  })
+  socket.on('disconnect', function () {
+    getOut (this.id)
+    allUser.splice(allUser.findIndex(who => who.id === this.id), 1)
+    io.sockets.emit('getUsers', allUser)
+    sentRoom (allRoom.room1[allRoom.room1.length - 1], allRoom.room2[allRoom.room2.length - 1], allRoom.room3[allRoom.room3.length - 1])
   })
 })
-function makeId () {
-  var text = ''
-  var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  for (var i = 0; i < 20; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length))
-  }
-  return text
-}
 app.set('port', (process.env.PORT || 3000))
 server.listen(app.get('port'), function () {
   console.log('Express server listening on port %d in %s mode', this.address().port, app.settings.env)

@@ -6,10 +6,10 @@ import router from './router'
 import VueSocketio from 'vue-socket.io'
 import VueClipboard from 'vue-clipboard2'
 Vue.use(VueClipboard)
-// Vue.use(VueSocketio, '192.168.1.127:3000') // Automaticly socket connect from url string
+Vue.use(VueSocketio, '127.0.0.1:3000') // Automaticly socket connect from url string
 // ////// For heroku /////////////
-var url = window.location.href // get url
-Vue.use(VueSocketio, url)
+// var url = window.location.href // get url
+// Vue.use(VueSocketio, url)
 // //////////////////////////////
 Vue.config.productionTip = false
 /* eslint-disable no-new */
