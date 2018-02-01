@@ -17,11 +17,11 @@
           <div class="">
             <table class="table table">
               <thead>
-                  <tr>
-                    <th><center>Name</center></th>
-                    <th><center>Message</center></th>
-                    <th><center>Time</center></th>
-                  </tr>
+                <tr>
+                  <th><center>Name</center></th>
+                  <th><center>Message</center></th>
+                  <th><center>Time</center></th>
+                </tr>
               </thead>
               <tbody>
                 <tr v-for="item in message">
@@ -33,16 +33,16 @@
             </table>
           </div>
         </div>
-        <div class="input-group">
-          <input v-model="myMessage" class="form-control">
-            <span class="input-group-btn">
-            <button :disabled="!myMessage" @click="sentMessage" type="button" class="btn btn-default">sent</button>
-          </span>
-        </div>
+          <form class="input-group" @keyup.enter="sentMessage">
+            <input v-model="myMessage" class="form-control" maxlength="150">
+              <span class="input-group-btn">
+              <button :disabled="!myMessage" @click="sentMessage" type="button" class="btn btn-default glyphicon glyphicon-send"></button>
+            </span>
+          </form>
       </div>
       <div class="col-md-2">
         <div class="thumbnail" >
-          <h4>All Usersdd</h4><hr style="margin-top:-5px;">
+          <h4>All Users</h4><hr style="margin-top:-5px;">
           <div class="" style="height:17.5rem; overflow-y: scroll; overflow-x: hidden;">
             <table class="table" style=" overflow: scroll;">
               <tr v-for="item in users">
@@ -54,6 +54,34 @@
       </div>
       </div>
       <div class="col-md-2">
+        <div class="thumbnail" >
+          <h4>User in Room</h4><hr style="margin-top:-5px;">
+          <div class="" style="height:17.5rem; overflow-y: scroll; overflow-x: hidden;">
+            <div v-for="item in joinUsers">
+              {{ item.user }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-show="!roomCheck" class="">
+      <div class="col-md-12">
+        <h2>Lobby</h2><br><br>
+      </div>
+      <div class="col-md-6">
+        <div class="thumbnail" >
+          <h4>All Users</h4><hr style="margin-top:-5px;">
+          <div class="" style="height:17.5rem; overflow-y: scroll; overflow-x: hidden;">
+            <table class="table" style=" overflow: scroll;">
+              <tr v-for="item in users">
+                <td>{{ item.user }}</td>
+                <td>{{ capitalizeFirstLetter(item.room) }}</td>
+              </tr>
+            </table>
+          </div>
+      </div>
+      </div>
+      <div class="col-md-6">
         <div class="thumbnail" >
           <h4>User in Room</h4><hr style="margin-top:-5px;">
           <div class="" style="height:17.5rem; overflow-y: scroll; overflow-x: hidden;">
@@ -137,10 +165,14 @@ export default {
       }
     },
     sentMessage () {
-      var vm = this
-      this.$socket.emit('onChat', {room: this.room, name: this.nameMe, message: this.myMessage})
-      this.message.push({message: vm.myMessage, who: vm.nameMe, time: new Date().toLocaleTimeString()})
-      this.myMessage = ''
+      if (this.myMessage) {
+        var vm = this
+        this.$socket.emit('onChat', {room: this.room, name: this.nameMe, message: this.myMessage})
+        this.message.push({message: vm.myMessage, who: vm.nameMe, time: new Date().toLocaleTimeString()})
+        this.myMessage = ''
+      } else {
+        // DO nothing.
+      }
     },
     setName (check) {
       var vm = this
@@ -214,6 +246,19 @@ export default {
   text-align: center;
   color: #2c3e50;
   /*margin-top: 60px;*/
+}
+body{
+  background-color: #99dfff;
+}
+textarea {
+    border: none;
+    background-color: none;
+    resize: none;
+    outline: none;
+}
+.thumbnail{
+  border-width: 5px;
+  border-color: #008bcc;
 }
 </style>
 <style src="../static/css/page1.css"> </style>
