@@ -57,7 +57,7 @@ io.on('connection', function (socket) {
   sentRoom (allRoom.room1[allRoom.room1.length - 1], allRoom.room2[allRoom.room2.length - 1], allRoom.room3[allRoom.room3.length - 1])
   socket.on('subscribe', function (data) {
     getOut (this.id)
-    if (allRoom[data.room][allRoom[data.room].length - 1] < 8){
+    if (allRoom[data.room][allRoom[data.room].length - 1] < 10){
       console.log(data.name, 'joining ', data.room)
       socket.join(data.room)
       allRoom[data.room].splice(allRoom[data.room].length - 1,1)
@@ -69,7 +69,7 @@ io.on('connection', function (socket) {
       io.sockets.to(data.room).emit('usersInRoom', allRoom[data.room])
       socket.emit('subscribed', data.room)
     } else {
-      socket.emit('usersJoin', -1)
+      socket.emit('fullRoom', data.room)
     }
   })
   socket.on('unsub', function (data) {

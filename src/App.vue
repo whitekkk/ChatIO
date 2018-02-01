@@ -1,59 +1,67 @@
 <template>
   <div v-show="nameMe" id="app" class="container-fluid">
-    <div class="btn-group" role="group" aria-label="..." style="margin-top:50px;">
-      <button type="button" class="btn btn-default" @click="changeRoom(1)">Room1  <span class="badge"> {{countRoom.room1}}</span></button>
-      <button type="button" class="btn btn-default" @click="changeRoom(2)">Room2  <span class="badge"> {{countRoom.room2}}</span></button>
-      <button type="button" class="btn btn-default" @click="changeRoom(3)">Room2  <span class="badge">  {{countRoom.room3}}</span></button>
+    <div class="col-md-12 col-md-offset-0">
+      <div class="btn-group" role="group" aria-label="..." style="margin-top:50px;">
+        <button type="button" class="btn btn-default" @click="changeRoom(1)">Room1  <span class="badge"> {{countRoom.room1}}</span></button>
+        <button type="button" class="btn btn-default" @click="changeRoom(2)">Room2  <span class="badge"> {{countRoom.room2}}</span></button>
+        <button type="button" class="btn btn-default" @click="changeRoom(3)">Room2  <span class="badge"> {{countRoom.room3}}</span></button>
+      </div>
     </div>
-    <div class="" style="margin-top:20px;">
-      {{capitalizeFirstLetter(room)}}
-      <button v-show="roomCheck" type="button" class="btn btn-danger" @click="changeRoom(-1)">X</button>
+    <div class="col-md-12 col-md-offset-0" style="margin-top:20px;">
+      <button v-show="roomCheck" type="button" class="btn btn-danger" @click="changeRoom(-1)">Lobby</button>
+      <h4>{{capitalizeFirstLetter(room)}}</h4>
     </div>
-    <div v-show="roomCheck" class="col-md-7 col-md-offset-3" style="margin-top:20px;">
-      <div class="col-md-8">
-        <div class="thumbnail" style="height:50rem;">
-          <table class="table table">
-            <thead>
-                <tr>
-                  <th><center>Name</center></th>
-                  <th><center>Message</center></th>
-                  <th><center>Time</center></th>
+    <div v-show="roomCheck" class="col-md-10 col-md-offset-1" style="margin-top:20px;">
+      <div class="col-md-10">
+        <div class="thumbnail" id="chat" style="height:50rem; overflow-y: scroll; overflow-x: hidden;">
+          <div class="">
+            <table class="table table">
+              <thead>
+                  <tr>
+                    <th><center>Name</center></th>
+                    <th><center>Message</center></th>
+                    <th><center>Time</center></th>
+                  </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in message">
+                  <td><center>{{ item.who }}</center></td>
+                  <td><center>{{ item.message }}</center></td>
+                  <td><center>{{ item.time }}</center></td>
                 </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in message">
-                <td>{{ item.who }}</td>
-                <td>{{ item.message }}</td>
-                <td>{{ item.time }}</td>
-              </tr>
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
         <div class="input-group">
           <input v-model="myMessage" class="form-control">
             <span class="input-group-btn">
-            <button @click="sentMessage" type="button" class="btn btn-default">sent</button>
+            <button :disabled="!myMessage" @click="sentMessage" type="button" class="btn btn-default">sent</button>
           </span>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="thumbnail" style="height:24rem;">
-          <h4>All Users</h4><hr style="margin-top:-5px;">
-          <table class="table">
-            <tr v-for="item in users">
-              <td>{{ item.user }}</td>
-              <td>{{ capitalizeFirstLetter(item.room) }}</td>
-            </tr>
-          </table>
+      <div class="col-md-2">
+        <div class="thumbnail" >
+          <h4>All Usersdd</h4><hr style="margin-top:-5px;">
+          <div class="" style="height:17.5rem; overflow-y: scroll; overflow-x: hidden;">
+            <table class="table" style=" overflow: scroll;">
+              <tr v-for="item in users">
+                <td>{{ item.user }}</td>
+                <td>{{ capitalizeFirstLetter(item.room) }}</td>
+              </tr>
+            </table>
+          </div>
       </div>
       </div>
-      <div class="col-md-3">
-        <div class="thumbnail" style="height:24rem;">
+      <div class="col-md-2">
+        <div class="thumbnail" >
           <h4>User in Room</h4><hr style="margin-top:-5px;">
-        <div v-for="item in joinUsers">
-          {{ item.user }}
+          <div class="" style="height:17.5rem; overflow-y: scroll; overflow-x: hidden;">
+            <div v-for="item in joinUsers">
+              {{ item.user }}
+            </div>
+          </div>
         </div>
-      </div>
       </div>
     </div>
   </div>
@@ -61,6 +69,7 @@
 
 <script>
 /* global swal */
+
 export default {
   name: 'app',
   data () {
@@ -105,6 +114,11 @@ export default {
     },
     usersInRoom (data) {
       this.joinUsers = data
+    },
+    fullRoom (data) {
+      var vm = this
+      swal('Sorry !', vm.capitalizeFirstLetter(data) + ' is full.')
+      this.changeRoom(-1)
     }
   },
   methods: {
